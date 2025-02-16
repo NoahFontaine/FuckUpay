@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from time import sleep
 from credentials import username, password
@@ -20,10 +22,23 @@ email_field.send_keys(username)
 password_field = driver.find_element(By.ID, 'txtPassword')
 password_field.send_keys(password)
 
-# Submit the form (complete purchase)
 login = driver.find_element(By.ID, 'btnLogin')
 login.click()
 
+menu = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.ID, 'divChilliHeaderMenuToggle'))
+)
+menu.click()
+
+events = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "EventBookings.EventsList.Load()")]'))
+)
+events.click()
+
+formal = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "EventBookings.EventsList.Continue(6)")]'))
+)
+formal.click()
 
 
 sleep(300)
