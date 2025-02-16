@@ -12,10 +12,10 @@ my_event = 'Formal'
 
 # 2. Enter the guests you want to invite here.
 # Each list element is in the form
-# ['Title', 'First Name', 'Last Name'].
-guests = [['', '', ''],
-          ['', '', ''],
-          ['', '', '']]
+# ['Title', 'First_Name Last_Name'].
+guests = [['', ''],
+          ['', ''],
+          ['', '']]
 
 # 3. Enter the menus you want to select here.
 # Each element is a string and in capital letters.
@@ -30,7 +30,6 @@ menus = ['STANDARD',
 # Make sure to include the 'th' or 'st' etc.
 date = '27th Feb 2025'
 
-
 ##########################################
 
 if __name__ == '__main__':
@@ -38,8 +37,6 @@ if __name__ == '__main__':
               (guest[0] != '' or guest[1] != '')]
     menus = [menu for menu in menus if menu != '']
 
-
     driver = login(username, password)
-
     navigate_and_buy(driver, events[my_event], date,
                     guests, menus)

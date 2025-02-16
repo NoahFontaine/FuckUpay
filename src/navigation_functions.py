@@ -15,7 +15,6 @@ def login(username, password):
     # Open UPay
     driver.get('https://www.upay.co.uk/app/')
 
-    # Fill out payment and personal info (Example: Email)
     email_field = WebDriverWait(driver, 1).until(
         EC.presence_of_element_located((By.ID, 'txtUsername'))
     )
@@ -46,8 +45,8 @@ def navigate_and_buy(driver: webdriver.Edge,
         EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "Menu.ToggleTopMenu()")]'))
     )
     menu.click()
-    # Retry logic for clicking the events element
-    for _ in range(3):  # Retry up to 3 times
+
+    for _ in range(3):
         try:
             events = WebDriverWait(driver, 1).until(
                 EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "EventBookings.EventsList.Load()")]'))
@@ -94,10 +93,39 @@ def navigate_and_buy(driver: webdriver.Edge,
     )
     continue_button.click()
 
-    # add_guest_button = WebDriverWait(driver, 10).until(
-    #     EC.element_to_be_clickable((By.ID, 'btnAddGuest'))
-    # )
-    # add_guest_button.click()
+    ### Uncomment and test this section to add guests ###
+    '''
+    if len(guests) ! == 0:
+        for guest in guests:
+            add_guest = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, '//button[contains(@onclick, "EventBookings.EventGuests.ShowAddGuestModal()")]'))
+            )
+            add_guest.click()
+
+            title = WebDriverWait(driver, 1).until(
+                EC.presence_of_element_located((By.ID, 'txtGuestTitle'))
+            )
+            title.send_keys(guest[0])
+
+            name = WebDriverWait(driver, 1).until(
+                EC.presence_of_element_located((By.ID, 'txtGuestName'))
+            )
+            name.send_keys(guest[1])
+
+            name = WebDriverWait(driver, 1).until(
+                EC.presence_of_element_located((By.ID, 'txtGuestName'))
+            )
+            name.send_keys(guest[1])
+
+            add_guest = WebDriverWait(driver, 1).until(
+                EC.element_to_be_clickable((By.ID, 'btnAddGuest'))
+            )
+            add_guest.click()
+    '''
+
+
+    ### Uncomment and test this section to add menus, making sure the menus are different ###
+    '''
     for menu in menus:
         menu_element = WebDriverWait(driver, 1).until(
             EC.presence_of_element_located((By.XPATH, f"//span[contains(text(), '{menu}')]"))
@@ -112,15 +140,8 @@ def navigate_and_buy(driver: webdriver.Edge,
             print('scrolled to button')
             WebDriverWait(driver, 1).until(EC.element_to_be_clickable(menu_button))
             menu_button.click()
+    '''
 
-    # # .... #
-    # for guest in guests:
-    #     food_button = WebDriverWait(driver, 10).until(
-    #         EC.element_to_be_clickable((By.XPATH, f'/html/body/div[2]/div[2]/div[2]/div/div/div/div[3]/div/div/div/ul/li[3]/div[1]/div/div'))
-    #     )
-
-    # yes = str(input('Do you want to continue? (y/n): '))
-    # if yes == 'y':
     
     to_payout = driver.find_element(By.XPATH, '//button[contains(@onclick, "EventBookings.EventHub.Continue()")]')
     driver.execute_script("arguments[0].scrollIntoView()", to_payout)
@@ -128,11 +149,13 @@ def navigate_and_buy(driver: webdriver.Edge,
     to_payout.click()
 
     ######## UNCOMMENT THIS SECTION TO BUY THE TICKET(S) ########
+    '''
     # Buy the ticket(s)
-    # buy_button = WebDriverWait(driver, 10).until(
-    #     EC.element_to_be_clickable((By.XPATH, '//button[contains(@onclick, "EventBookings.Review.Continue()")]'))
-    # )
-    # buy_button.click()
+    buy_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//button[contains(@onclick, "EventBookings.Review.Continue()")]'))
+    )
+    buy_button.click()
+    '''
 
     sleep(300)
 
