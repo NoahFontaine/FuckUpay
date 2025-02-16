@@ -1,47 +1,55 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium import webdriver
 from time import sleep
-from credentials import username, password
 
 
-def login_and_navigate(event_number: str,
-                       date: str,
-                       guests: list[list[str]],
-                       menus: list[str]
-                       ):
-    
+def login(username, password):
     # Set up WebDriver for Edge
     service = Service(EdgeChromiumDriverManager().install())
     driver = webdriver.Edge(service=service)
 
-    # Open the ticket site
+    # Open UPay
     driver.get('https://www.upay.co.uk/app/')
 
     # Fill out payment and personal info (Example: Email)
-    email_field = driver.find_element(By.ID, 'txtUsername')
+    email_field = WebDriverWait(driver, 1).until(
+        EC.presence_of_element_located((By.ID, 'txtUsername'))
+    )
     email_field.send_keys(username)
 
-    password_field = driver.find_element(By.ID, 'txtPassword')
+    password_field = WebDriverWait(driver, 1).until(
+        EC.presence_of_element_located((By.ID, 'txtPassword'))
+    )
     password_field.send_keys(password)
 
-    login = driver.find_element(By.ID, 'btnLogin')
+    login = WebDriverWait(driver, 1).until(
+        EC.element_to_be_clickable((By.ID, 'btnLogin'))
+    )
     login.click()
 
-    menu = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.ID, 'divChilliHeaderMenuToggle'))
+    return driver
+
+
+def navigate_and_buy(driver: webdriver.Edge,
+                     event_number: str,
+                     date: str,
+                     guests: list[list[str]],
+                     menus: list[str]
+                     ):
+    
+
+    menu = WebDriverWait(driver, 1).until(
+        EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "Menu.ToggleTopMenu()")]'))
     )
     menu.click()
-
     # Retry logic for clicking the events element
     for _ in range(3):  # Retry up to 3 times
         try:
-            events = WebDriverWait(driver, 10).until(
+            events = WebDriverWait(driver, 1).until(
                 EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "EventBookings.EventsList.Load()")]'))
             )
             events.click()
@@ -52,10 +60,16 @@ def login_and_navigate(event_number: str,
 
     while True:
         try:
-            formal = WebDriverWait(driver, 10).until(
+            formal = WebDriverWait(driver, 1).until(
             EC.element_to_be_clickable((By.XPATH, f'//div[contains(@onclick, "EventBookings.EventsList.Continue({event_number})")]'))
             )
             formal.click()
+
+            date_popup = WebDriverWait(driver, 1).until(
+                EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "EventBookings.EventDates.ChooseDates()")]'))
+            )
+            date_popup.click()
+
             break
         except:
             print('need to press ok element')
@@ -63,19 +77,19 @@ def login_and_navigate(event_number: str,
             
             ok_button.click()
 
-    date_popup = WebDriverWait(driver, 1).until(
-        EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "EventBookings.EventDates.ChooseDates()")]'))
-    )
-    date_popup.click()
-
-    # Locate the div with "27th Feb 2025"
-    date_element = WebDriverWait(driver, 10).until(
+    date_element = WebDriverWait(driver, 1).until(
         EC.presence_of_element_located((By.XPATH, f"//div[contains(@class, 'date-list--date')][contains(., '{date}')]"))
     )
-    
-    date_element.click()
 
-    continue_button = WebDriverWait(driver, 10).until(
+    while True:
+        try:
+            date_element.click()
+            break
+        except Exception as e:
+            print(f"Retrying due to: {e}")
+            sleep(0.05)  # Wait for 0.05 seconds before retrying (20 times per second)
+
+    continue_button = WebDriverWait(driver, 1).until(
         EC.element_to_be_clickable((By.XPATH, '//div[contains(@onclick, "Modal.Close(EventBookings.EventDates.OnDatesSelected)")]'))
     )
     continue_button.click()
@@ -85,7 +99,7 @@ def login_and_navigate(event_number: str,
     # )
     # add_guest_button.click()
     for menu in menus:
-        menu_element = WebDriverWait(driver, 10).until(
+        menu_element = WebDriverWait(driver, 1).until(
             EC.presence_of_element_located((By.XPATH, f"//span[contains(text(), '{menu}')]"))
         )
         menu_button = menu_element.find_element(By.XPATH, "./ancestor::li[contains(@class, 'eb--category-item')]//div[contains(@class, 'btn-check')]")
@@ -94,9 +108,9 @@ def login_and_navigate(event_number: str,
         try:
             menu_button.click()
         except:
-            driver.execute_script("arguments[0].scrollIntoView(true);", menu_button)
+            driver.execute_script("arguments[0].scrollIntoView(true)", menu_button)
             print('scrolled to button')
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable(menu_button))
+            WebDriverWait(driver, 1).until(EC.element_to_be_clickable(menu_button))
             menu_button.click()
 
     # # .... #
@@ -107,35 +121,20 @@ def login_and_navigate(event_number: str,
 
     # yes = str(input('Do you want to continue? (y/n): '))
     # if yes == 'y':
-    # Scroll to the specific element
-    to_payout = driver.find_element(By.ID, 'btn btn-grey')
-    driver.execute_script("arguments[0].scrollIntoView();", to_payout)
+    
+    to_payout = driver.find_element(By.XPATH, '//button[contains(@onclick, "EventBookings.EventHub.Continue()")]')
+    driver.execute_script("arguments[0].scrollIntoView()", to_payout)
 
     to_payout.click()
 
+    ######## UNCOMMENT THIS SECTION TO BUY THE TICKET(S) ########
+    # Buy the ticket(s)
+    # buy_button = WebDriverWait(driver, 10).until(
+    #     EC.element_to_be_clickable((By.XPATH, '//button[contains(@onclick, "EventBookings.Review.Continue()")]'))
+    # )
+    # buy_button.click()
 
     sleep(300)
 
 
-    # Close browser after completing task
-
     driver.quit()
-
-
-# login_button = driver.find_element(By.XPATH, '//button[text()="Login"]')
-# login_button.click()
-
-# username = driver.find_element(By.NAME, 'username')
-# password = driver.find_element(By.NAME, 'password')
-
-# username.send_keys('your_username')
-# password.send_keys('your_password')
-
-# login_button = driver.find_element(By.XPATH, '//button[text()="Login"]')
-# login_button.click()
-
-# while True:
-#     if is_ticket_available():  # Define this function to check ticket availability
-#         buy_ticket()
-#         break
-#     time.sleep(5)  # Wait for 5 seconds before checking again
