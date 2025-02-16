@@ -9,7 +9,7 @@
 ### Input your user login credentials:
 1. Create a python file called **credentials.py** in the **src/** directory.
 2. This file must only be comprised of 2 lines:
-    > username = 'CRSid@cam.ac.uk' <\n>
+    > username = 'CRSid@cam.ac.uk' <br>
     > password = 'yourPassword'
 
 
